@@ -1,0 +1,278 @@
+/* =============== AUTH LAYOUT: Clean 3D Tactile Professional DYNAMIC =============== */
+
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100%;
+}
+
+/* LEFT CARD (Deep Brand Area) */
+.left-card {
+  width: 320px;
+  height: 480px;
+  background: var(--bg-dark-brand);
+  border-radius: 20px 0 0 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+  color: white; /* stays white because left card is dark */
+  padding: 30px;
+  box-sizing: border-box;
+  border-right: none;
+  transition: background-color 0.3s ease;
+  box-shadow: var(--shadow-md);
+}
+
+.left-card .img-wrapper {
+  width: 100px;
+  height: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 25px;
+  background: var(--bg-surface-hover); /* dynamically adjusts to theme */
+  border-radius: 24px;
+  padding: 20px;
+  box-shadow: var(--shadow-input), 0 4px 6px rgba(0,0,0,0.3);
+  border-bottom: 2px solid var(--border-heavy);
+}
+
+.left-card img {
+  max-width: 100%;
+  max-height: 100%;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+
+.left-card h3 {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-align: center;
+  line-height: 1.4;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  color: white;
+}
+
+/* RIGHT CARD (Dynamic 3D Block) */
+.right-card {
+  width: 420px;
+  min-height: 540px;
+  padding: 40px;
+  background: var(--bg-surface);
+  border-radius: 24px;
+  z-index: 2;
+  margin-left: -20px; 
+  box-shadow: var(--shadow-surface);
+  border: 1px solid var(--border-light);
+  box-sizing: border-box;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* TABS */
+.tabs {
+  display: flex;
+  margin-bottom: 30px;
+  border-bottom: 2px solid var(--border-light);
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  padding-bottom: 12px;
+  font-weight: 800;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  position: relative;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.2s ease;
+}
+
+.tab:hover {
+  color: var(--text-secondary);
+}
+
+.tab.active {
+  color: var(--text-primary);
+}
+
+.tab.active::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--brand-primary);
+}
+
+/* FORM CONTAINER (Smooth Switching) */
+.forms-container {
+  position: relative;
+}
+
+/* FORM */
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-form {
+  width: 100%;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.auth-form.hidden-form {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(10px);
+  z-index: 1;
+}
+
+.auth-form.active-form {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+  z-index: 2;
+  position: relative; 
+}
+
+label {
+  margin: 15px 0 6px 0;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+input {
+  padding: 14px 18px;
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--border-heavy);
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  box-shadow: var(--shadow-input);
+}
+
+input:focus {
+  background: var(--bg-surface);
+  border-color: var(--brand-primary);
+  box-shadow: var(--shadow-input), 0 0 0 3px var(--brand-active);
+}
+
+/* PASSWORD */
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.password-wrapper input {
+  padding-right: 45px;
+}
+
+.password-wrapper span {
+  position: absolute;
+  right: 15px;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+
+.password-wrapper span:hover {
+  color: var(--brand-primary);
+}
+
+/* 3D TACTILE SUBMIT BUTTON */
+form button[type="submit"] {
+  margin-top: 30px;
+  padding: 16px;
+  background: var(--brand-primary);
+  color: white;
+  border: 1px solid var(--brand-primary-dark);
+  border-bottom: 4px solid var(--brand-primary-darker); 
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);
+}
+
+form button[type="submit"]:active {
+  transform: translateY(3px);
+  border-bottom-width: 1px;
+  margin-bottom: 3px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* DIVIDER */
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 25px 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.divider::before, 
+.divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 2px solid var(--bg-primary);
+}
+.divider span {
+  padding: 0 15px;
+}
+
+/* GOOGLE BUTTON (3D Tactile) */
+.google-btn {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
+  border-bottom: 4px solid var(--border-heavy); 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  font-weight: 800;
+  margin-top: 0;
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+  box-shadow: var(--shadow-sm);
+}
+
+.google-btn:active {
+  transform: translateY(3px);
+  border-bottom-width: 1px;
+  box-shadow: none;
+}

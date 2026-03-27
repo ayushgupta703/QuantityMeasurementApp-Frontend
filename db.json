@@ -1,0 +1,29 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Test User",
+      "email": "test@example.com",
+      "password": "123456",
+      "mobile": "9876543210"
+    },
+    {
+      "email": "ag6691602@gmail.com",
+      "password": "ayushgupta#cs22",
+      "mobile": "7037842430",
+      "id": 2
+    },
+    {
+      "email": "ayush@gmail.com",
+      "password": "ayushgupta#cs22",
+      "mobile": "07037842430",
+      "id": 3
+    },
+    {
+      "email": "a@gmail.com",
+      "password": "ayushgupta#cs22",
+      "mobile": "07037842430",
+      "id": 4
+    }
+  ]
+}

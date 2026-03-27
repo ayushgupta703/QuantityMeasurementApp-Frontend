@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Quantity Measurement App - Authentication</title>
+
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/auth.css" />
+</head>
+<body>
+  <!-- Theme Toggle -->
+  <button id="themeToggle" class="theme-toggle">🌙 Dark Mode</button>
+
+<div class="container">
+
+  <!-- LEFT CARD -->
+  <div class="left-card">
+    <div class="img-wrapper">
+      <img src="assets/images/QMA.png" alt="shopping" />
+    </div>
+    <h3>Quantity Measurement App</h3>
+  </div>
+
+  <!-- RIGHT CARD -->
+  <div class="right-card">
+
+    <div class="tabs">
+      <span class="tab active" id="tab-login" onclick="toggleAuth('login')">LOGIN</span>
+      <span class="tab" id="tab-signup" onclick="toggleAuth('signup')">SIGNUP</span>
+    </div>
+
+    <div class="forms-container">
+      
+      <!-- LOGIN FORM -->
+      <form id="loginForm" class="auth-form active-form">
+
+        <label>Email Id</label>
+        <input type="email" id="loginEmail" required />
+
+        <label>Password</label>
+        <div class="password-wrapper">
+          <input type="password" id="loginPassword" required />
+          <span class="togglePassword">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          </span>
+        </div>
+
+        <button type="submit">Login</button>
+        
+        <div class="divider"><span>OR</span></div>
+        <button type="button" class="google-btn">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" width="18" height="18">
+          Continue with Google
+        </button>
+
+      </form>
+
+      <!-- SIGNUP FORM -->
+      <form id="signupForm" class="auth-form hidden-form">
+
+        <label>Full Name</label>
+        <input type="text" id="signupName" required />
+
+        <label>Email Id</label>
+        <input type="email" id="signupEmail" required />
+
+        <label>Password</label>
+        <div class="password-wrapper">
+          <input type="password" id="signupPassword" required />
+          <span class="togglePassword">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          </span>
+        </div>
+
+        <label>Mobile Number</label>
+        <input type="text" id="signupMobile" required />
+
+        <button type="submit">Signup</button>
+
+        <div class="divider"><span>OR</span></div>
+        <button type="button" class="google-btn">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" width="18" height="18">
+          Continue with Google
+        </button>
+
+      </form>
+
+    </div>
+
+  </div>
+
+</div>
+
+  <!-- Scripts -->
+  <script type="module" src="js/services/authService.js"></script>
+  <script type="module" src="js/pages/login.js"></script>
+  <script type="module" src="js/pages/signup.js"></script>
+  <script src="js/utils/passwordToggle.js"></script>
+  <script src="js/utils/theme.js"></script>
+
+<script>
+window.toggleAuth = function(type) {
+  const loginForm = document.getElementById("loginForm");
+  const signupForm = document.getElementById("signupForm");
+  const tabLogin = document.getElementById("tab-login");
+  const tabSignup = document.getElementById("tab-signup");
+
+  if (type === 'login') {
+    // Show login, hide signup
+    signupForm.classList.remove('active-form');
+    signupForm.classList.add('hidden-form');
+    
+    // slight delay before active class for smooth overlay feeling, or immediately
+    setTimeout(() => {
+      loginForm.classList.remove('hidden-form');
+      loginForm.classList.add('active-form');
+    }, 100);
+
+    tabLogin.classList.add("active");
+    tabSignup.classList.remove("active");
+  } else {
+    // Show signup, hide login
+    loginForm.classList.remove('active-form');
+    loginForm.classList.add('hidden-form');
+    
+    setTimeout(() => {
+      signupForm.classList.remove('hidden-form');
+      signupForm.classList.add('active-form');
+    }, 100);
+
+    tabSignup.classList.add("active");
+    tabLogin.classList.remove("active");
+  }
+}
+</script>
+
+</body>
+</html>
