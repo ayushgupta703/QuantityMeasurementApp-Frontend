@@ -1,0 +1,31 @@
+.theme-toggle-btn {
+  background: var(--glass-bg, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.15));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 20px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 100;
+  color: var(--text-primary, #f8fafc);
+  box-shadow: 0 8px 24px -5px rgba(0, 0, 0, 0.4);
+}
+
+.theme-toggle-btn:hover {
+  background: var(--glass-bg-hover, rgba(255, 255, 255, 0.1));
+  border-color: var(--glass-border-light, rgba(255, 255, 255, 0.3));
+}
+
+.theme-toggle-btn.detached {
+  position: absolute;
+  top: 40px;
+  right: 40px;
+}
