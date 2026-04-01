@@ -76,4 +76,31 @@ export const divide = async (data) => {
   return res.json();
 };
 
+// 🔹 History by Operation
+export const getHistoryByOperation = async (operation) => {
+  const res = await fetch(`${BASE_URL}/history/operation/${operation}`, {
+    method: "GET",
+    headers: getHeaders()
+  });
+  return res.json();
+};
+
+// 🔹 History by Measurement Type
+export const getHistoryByType = async (type) => {
+  const res = await fetch(`${BASE_URL}/history/type/${type}`, {
+    method: "GET",
+    headers: getHeaders()
+  });
+  return res.json();
+};
+
+// 🔹 Operation Count
+export const getOperationCount = async (operation) => {
+  const res = await fetch(`${BASE_URL}/count/${operation}`, {
+    method: "GET",
+    headers: getHeaders()
+  });
+  return res.json();
+};
+
 export { buildPayload };
