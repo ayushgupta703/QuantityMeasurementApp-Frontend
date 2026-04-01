@@ -1,9 +1,21 @@
 const BASE_URL = "http://localhost:8081/api/v1/quantities";
 
-const getHeaders = () => ({
-  "Content-Type": "application/json",
-  "Authorization": `Bearer ${localStorage.getItem("token")}`
-});
+const getOperationHeaders = () => {
+  const token = localStorage.getItem("token");
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { "Authorization": `Bearer ${token}` } : {})
+  };
+};
+
+const getHistoryHeaders = () => {
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("UNAUTHORIZED");
+  return {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${token}`
+  };
+};
 
 // 🔥 UPDATED payload builder (supports conversion properly)
 const buildPayload = (
@@ -28,9 +40,9 @@ const buildPayload = (
 
 // 🔹 Convert
 export const convert = async (data) => {
-  const res = await fetch(`${BASE_URL}/convert`, {
+  const res = await fetch(`${BASE_URL}/operation/convert`, {
     method: "POST",
-    headers: getHeaders(),
+    headers: getOperationHeaders(),
     body: JSON.stringify(data)
   });
   return res.json();
@@ -38,9 +50,9 @@ export const convert = async (data) => {
 
 // 🔹 Compare
 export const compare = async (data) => {
-  const res = await fetch(`${BASE_URL}/compare`, {
+  const res = await fetch(`${BASE_URL}/operation/compare`, {
     method: "POST",
-    headers: getHeaders(),
+    headers: getOperationHeaders(),
     body: JSON.stringify(data)
   });
   return res.json();
@@ -48,9 +60,9 @@ export const compare = async (data) => {
 
 // 🔹 Add
 export const add = async (data) => {
-  const res = await fetch(`${BASE_URL}/add`, {
+  const res = await fetch(`${BASE_URL}/operation/add`, {
     method: "POST",
-    headers: getHeaders(),
+    headers: getOperationHeaders(),
     body: JSON.stringify(data)
   });
   return res.json();
@@ -58,9 +70,9 @@ export const add = async (data) => {
 
 // 🔹 Subtract
 export const subtract = async (data) => {
-  const res = await fetch(`${BASE_URL}/subtract`, {
+  const res = await fetch(`${BASE_URL}/operation/subtract`, {
     method: "POST",
-    headers: getHeaders(),
+    headers: getOperationHeaders(),
     body: JSON.stringify(data)
   });
   return res.json();
@@ -68,11 +80,25 @@ export const subtract = async (data) => {
 
 // 🔹 Divide
 export const divide = async (data) => {
-  const res = await fetch(`${BASE_URL}/divide`, {
+  const res = await fetch(`${BASE_URL}/operation/divide`, {
     method: "POST",
-    headers: getHeaders(),
+    headers: getOperationHeaders(),
     body: JSON.stringify(data)
   });
+  return res.json();
+};
+
+// 🔹 All history (logged-in user)
+export const getAllHistory = async () => {
+  const res = await fetch(`${BASE_URL}/history`, {
+    method: "GET",
+    headers: getHistoryHeaders()
+  });
+  if (!res.ok) {
+    if (res.status === 401) throw new Error("UNAUTHORIZED");
+    const msg = await res.text();
+    throw new Error(msg || "Failed to fetch all history");
+  }
   return res.json();
 };
 
@@ -80,8 +106,13 @@ export const divide = async (data) => {
 export const getHistoryByOperation = async (operation) => {
   const res = await fetch(`${BASE_URL}/history/operation/${operation}`, {
     method: "GET",
-    headers: getHeaders()
+    headers: getHistoryHeaders()
   });
+  if (!res.ok) {
+    if (res.status === 401) throw new Error("UNAUTHORIZED");
+    const msg = await res.text();
+    throw new Error(msg || "Failed to fetch history by operation");
+  }
   return res.json();
 };
 
@@ -89,8 +120,13 @@ export const getHistoryByOperation = async (operation) => {
 export const getHistoryByType = async (type) => {
   const res = await fetch(`${BASE_URL}/history/type/${type}`, {
     method: "GET",
-    headers: getHeaders()
+    headers: getHistoryHeaders()
   });
+  if (!res.ok) {
+    if (res.status === 401) throw new Error("UNAUTHORIZED");
+    const msg = await res.text();
+    throw new Error(msg || "Failed to fetch history by type");
+  }
   return res.json();
 };
 
@@ -98,8 +134,13 @@ export const getHistoryByType = async (type) => {
 export const getOperationCount = async (operation) => {
   const res = await fetch(`${BASE_URL}/count/${operation}`, {
     method: "GET",
-    headers: getHeaders()
+    headers: getHistoryHeaders()
   });
+  if (!res.ok) {
+    if (res.status === 401) throw new Error("UNAUTHORIZED");
+    const msg = await res.text();
+    throw new Error(msg || "Failed to fetch operation count");
+  }
   return res.json();
 };
 
