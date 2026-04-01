@@ -13,7 +13,7 @@ function OAuthSuccess() {
       localStorage.setItem("token", token);
       localStorage.setItem("userEmail", email);
 
-      navigate("/dashboard");
+      navigate("/");
     } else {
       navigate("/");
     }

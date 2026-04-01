@@ -11,6 +11,7 @@ import {
   add,
   subtract,
   divide,
+  getAllHistory,
   getHistoryByOperation,
   getHistoryByType,
   getOperationCount
@@ -85,6 +86,7 @@ function Dashboard() {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const [activeFilterCategory, setActiveFilterCategory] = useState("OPERATION"); // OPERATION | TYPE
   const [draftOperation, setDraftOperation] = useState("");
   const [draftType, setDraftType] = useState("");
@@ -114,21 +116,61 @@ function Dashboard() {
 
   const fetchHistoryByOperation = async (op) => {
     try {
+      setIsHistoryLoading(true);
       const data = await getHistoryByOperation(op);
       setHistory(Array.isArray(data) ? data : (data?.history || data?.data || []));
     } catch (err) {
+      if (err.message === "UNAUTHORIZED") {
+        localStorage.removeItem("token");
+        showToast("Session expired. Please login to view history.", "error");
+        setIsFilterOpen(false);
+        setIsHistoryOpen(false);
+        return;
+      }
       showToast("Failed to fetch history: " + err.message, "error");
       setHistory([]);
+    } finally {
+      setIsHistoryLoading(false);
+    }
+  };
+
+  const fetchAllHistory = async () => {
+    try {
+      setIsHistoryLoading(true);
+      const data = await getAllHistory();
+      setHistory(Array.isArray(data) ? data : (data?.history || data?.data || []));
+    } catch (err) {
+      if (err.message === "UNAUTHORIZED") {
+        localStorage.removeItem("token");
+        showToast("Session expired. Please login to view history.", "error");
+        setIsFilterOpen(false);
+        setIsHistoryOpen(false);
+        return;
+      }
+      showToast("Failed to fetch history: " + err.message, "error");
+      setHistory([]);
+    } finally {
+      setIsHistoryLoading(false);
     }
   };
 
   const fetchHistoryByType = async (type) => {
     try {
+      setIsHistoryLoading(true);
       const data = await getHistoryByType(type);
       setHistory(Array.isArray(data) ? data : (data?.history || data?.data || []));
     } catch (err) {
+      if (err.message === "UNAUTHORIZED") {
+        localStorage.removeItem("token");
+        showToast("Session expired. Please login to view history.", "error");
+        setIsFilterOpen(false);
+        setIsHistoryOpen(false);
+        return;
+      }
       showToast("Failed to fetch history: " + err.message, "error");
       setHistory([]);
+    } finally {
+      setIsHistoryLoading(false);
     }
   };
 
@@ -141,6 +183,13 @@ function Dashboard() {
           : (data?.count ?? data?.data ?? data?.value ?? 0);
       setOperationCount(Number(count) || 0);
     } catch (err) {
+      if (err.message === "UNAUTHORIZED") {
+        localStorage.removeItem("token");
+        showToast("Session expired. Please login to view history.", "error");
+        setIsFilterOpen(false);
+        setIsHistoryOpen(false);
+        return;
+      }
       showToast("Failed to fetch operation count: " + err.message, "error");
       setOperationCount(0);
     }
@@ -193,7 +242,17 @@ function Dashboard() {
   }, [isUserMenuOpen]);
 
   const openHistory = () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      showToast("Please login to view history", "info");
+      return;
+    }
+    setHistoryFilterMode("all");
+    setSelectedOperation("");
+    setSelectedTypeFilter("");
+    setOperationCount(0);
     setIsHistoryOpen(true);
+    fetchAllHistory();
   };
 
   const openFilter = () => {
@@ -205,15 +264,26 @@ function Dashboard() {
   const applyFilter = async () => {
     setIsFilterOpen(false);
 
+    if (activeFilterCategory === "ALL") {
+      setHistoryFilterMode("all");
+      setSelectedOperation("");
+      setSelectedTypeFilter("");
+      setOperationCount(0);
+      await fetchAllHistory();
+      return;
+    }
+
     if (activeFilterCategory === "OPERATION") {
       const op = (draftOperation || "").trim();
       setSelectedOperation(op);
       setSelectedTypeFilter(""); // show that we are filtering by operation now
       if (!op) {
+        setHistoryFilterMode("none");
         setHistory([]);
         setOperationCount(0);
         return;
       }
+      setHistoryFilterMode("operation");
       await fetchHistoryByOperation(op);
       await fetchOperationCount(op);
       return;
@@ -224,9 +294,11 @@ function Dashboard() {
     setSelectedOperation(""); // show that we are filtering by type now
     setOperationCount(0);
     if (!type) {
+      setHistoryFilterMode("none");
       setHistory([]);
       return;
     }
+    setHistoryFilterMode("type");
     await fetchHistoryByType(type);
   };
 
@@ -236,6 +308,7 @@ function Dashboard() {
     setSelectedOperation("");
     setSelectedTypeFilter("");
     setOperationCount(0);
+    setHistoryFilterMode("none");
     setHistory([]);
   };
 
@@ -327,6 +400,9 @@ function Dashboard() {
     setTimeout(() => ripple.remove(), 600);
   };
 
+  const token = localStorage.getItem("token");
+  const isLoggedIn = !!token;
+
   return (
     <div className="dashboard" data-type={selectedType}>
       {/* Ambient reactive background universe */}
@@ -342,80 +418,95 @@ function Dashboard() {
               handleRipple(e);
               openHistory();
             }}
+            disabled={!isLoggedIn}
+            title={!isLoggedIn ? "Please login to view history" : "View history"}
+            style={!isLoggedIn ? { opacity: 0.55, cursor: "not-allowed" } : undefined}
           >
             History
           </button>
 
-          <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+          {!isLoggedIn ? (
             <button
-              id="user-menu-btn"
+              className="logout-btn"
               onClick={(e) => {
                 handleRipple(e);
-                setIsUserMenuOpen((v) => !v);
+                navigate("/login");
               }}
-              style={{
-                height: "40px",
-                width: "40px",
-                borderRadius: "999px",
-                border: "1px solid rgba(255,255,255,0.14)",
-                background: "rgba(255,255,255,0.06)",
-                display: "grid",
-                placeItems: "center",
-                cursor: "pointer",
-                color: "var(--text-primary)"
-              }}
-              aria-haspopup="menu"
-              aria-expanded={isUserMenuOpen}
-              title={userEmail}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21a8 8 0 0 0-16 0" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
+              Login
             </button>
-
-            {isUserMenuOpen && (
-              <div
-                id="user-menu"
-                role="menu"
-                style={{
-                  position: "absolute",
-                  top: "46px",
-                  right: 0,
-                  width: "260px",
-                  borderRadius: "12px",
-                  background: "rgba(22,22,26,0.96)",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  boxShadow: "0 16px 44px rgba(0,0,0,0.45)",
-                  padding: "10px",
-                  zIndex: 50
+          ) : (
+            <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+              <button
+                id="user-menu-btn"
+                onClick={(e) => {
+                  handleRipple(e);
+                  setIsUserMenuOpen((v) => !v);
                 }}
+                style={{
+                  height: "40px",
+                  width: "40px",
+                  borderRadius: "999px",
+                  border: "1px solid rgba(255,255,255,0.14)",
+                  background: "rgba(255,255,255,0.06)",
+                  display: "grid",
+                  placeItems: "center",
+                  cursor: "pointer",
+                  color: "var(--text-primary)"
+                }}
+                aria-haspopup="menu"
+                aria-expanded={isUserMenuOpen}
+                title={userEmail}
               >
-                <div style={{ padding: "8px 10px" }}>
-                  <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "1.5px", color: "var(--text-secondary)" }}>
-                    Signed in as
-                  </div>
-                  <div style={{ marginTop: "6px", fontSize: "13px", fontWeight: 800, wordBreak: "break-word" }}>
-                    {userEmail}
-                  </div>
-                </div>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21a8 8 0 0 0-16 0" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </button>
 
-                <div style={{ height: "1px", background: "rgba(255,255,255,0.10)", margin: "8px 0" }} />
-
-                <button
-                  role="menuitem"
-                  className="logout-btn"
-                  onClick={() => {
-                    setIsUserMenuOpen(false);
-                    handleLogout();
+              {isUserMenuOpen && (
+                <div
+                  id="user-menu"
+                  role="menu"
+                  style={{
+                    position: "absolute",
+                    top: "46px",
+                    right: 0,
+                    width: "260px",
+                    borderRadius: "12px",
+                    background: "rgba(22,22,26,0.96)",
+                    border: "1px solid rgba(255,255,255,0.12)",
+                    boxShadow: "0 16px 44px rgba(0,0,0,0.45)",
+                    padding: "10px",
+                    zIndex: 50
                   }}
-                  style={{ width: "100%" }}
                 >
-                  Logout
-                </button>
-              </div>
-            )}
-          </div>
+                  <div style={{ padding: "8px 10px" }}>
+                    <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "1.5px", color: "var(--text-secondary)" }}>
+                      Signed in as
+                    </div>
+                    <div style={{ marginTop: "6px", fontSize: "13px", fontWeight: 800, wordBreak: "break-word" }}>
+                      {userEmail}
+                    </div>
+                  </div>
+
+                  <div style={{ height: "1px", background: "rgba(255,255,255,0.10)", margin: "8px 0" }} />
+
+                  <button
+                    role="menuitem"
+                    className="logout-btn"
+                    onClick={() => {
+                      setIsUserMenuOpen(false);
+                      handleLogout();
+                    }}
+                    style={{ width: "100%" }}
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -573,7 +664,7 @@ function Dashboard() {
             inset: 0,
             background: "rgba(0,0,0,0.55)",
             backdropFilter: "blur(6px)",
-            zIndex: 9998,
+            zIndex: 100000,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -596,9 +687,18 @@ function Dashboard() {
               <div>
                 <div style={{ fontSize: "14px", fontWeight: 800 }}>History</div>
                 <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "2px" }}>
-                  Operation: {selectedOperation || "None"} • Type: {selectedTypeFilter || "None"}
+                  {historyFilterMode === "all" ? (
+                    <>Showing: <span style={{ color: "var(--text-primary)", fontWeight: 700 }}>All history</span></>
+                  ) : (
+                    <>Operation: {selectedOperation || "None"} • Type: {selectedTypeFilter || "None"}</>
+                  )}
                 </div>
-                {!!selectedOperation && (
+                {historyFilterMode === "all" && history.length > 0 && (
+                  <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "2px" }}>
+                    Total entries: <span style={{ color: "var(--text-primary)", fontWeight: 800 }}>{history.length}</span>
+                  </div>
+                )}
+                {historyFilterMode === "operation" && !!selectedOperation && (
                   <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "2px" }}>
                     Total {selectedOperation} operations: <span style={{ color: "var(--text-primary)", fontWeight: 800 }}>{operationCount}</span>
                   </div>
@@ -627,9 +727,13 @@ function Dashboard() {
             </div>
 
             <div style={{ marginTop: "12px" }}>
-              {(!history || history.length === 0) ? (
+              {isHistoryLoading ? (
                 <div style={{ color: "var(--text-secondary)", fontSize: "13px" }}>
-                  No history available
+                  Loading history...
+                </div>
+              ) : (!history || history.length === 0) ? (
+                <div style={{ color: "var(--text-secondary)", fontSize: "13px" }}>
+                  No history found
                 </div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -667,7 +771,7 @@ function Dashboard() {
             inset: 0,
             background: "rgba(0,0,0,0.55)",
             backdropFilter: "blur(6px)",
-            zIndex: 9999,
+            zIndex: 100001,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -696,12 +800,12 @@ function Dashboard() {
               </button>
             </div>
 
-            <div style={{ display: "flex", gap: "10px", marginTop: "12px" }}>
+            <div style={{ display: "flex", gap: "8px", marginTop: "12px", flexWrap: "wrap" }}>
               <button
                 className={activeFilterCategory === "OPERATION" ? "active" : ""}
                 onClick={() => setActiveFilterCategory("OPERATION")}
                 style={{
-                  flex: 1,
+                  flex: "1 1 120px",
                   padding: "10px 12px",
                   borderRadius: "10px",
                   border: "1px solid rgba(255,255,255,0.12)",
@@ -717,7 +821,7 @@ function Dashboard() {
                 className={activeFilterCategory === "TYPE" ? "active" : ""}
                 onClick={() => setActiveFilterCategory("TYPE")}
                 style={{
-                  flex: 1,
+                  flex: "1 1 120px",
                   padding: "10px 12px",
                   borderRadius: "10px",
                   border: "1px solid rgba(255,255,255,0.12)",
@@ -729,6 +833,22 @@ function Dashboard() {
               >
                 Measurement Type
               </button>
+              <button
+                className={activeFilterCategory === "ALL" ? "active" : ""}
+                onClick={() => setActiveFilterCategory("ALL")}
+                style={{
+                  flex: "1 1 120px",
+                  padding: "10px 12px",
+                  borderRadius: "10px",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  background: activeFilterCategory === "ALL" ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.04)",
+                  color: "var(--text-primary)",
+                  fontWeight: 700,
+                  cursor: "pointer"
+                }}
+              >
+                All history
+              </button>
             </div>
 
             <div style={{ marginTop: "12px" }}>
@@ -738,7 +858,7 @@ function Dashboard() {
                     Choose Operation
                   </div>
                   <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                    {["ADD", "SUBTRACT", "DIVIDE", "CONVERT"].map((op) => (
+                    {["ADD", "SUBTRACT", "DIVIDE", "CONVERT", "COMPARE"].map((op) => (
                       <button
                         key={op}
                         onClick={() => setDraftOperation(op)}
@@ -760,7 +880,7 @@ function Dashboard() {
                     Current selection: <span style={{ fontWeight: 700, color: "var(--text-primary)" }}>{draftOperation || "None"}</span>
                   </div>
                 </div>
-              ) : (
+              ) : activeFilterCategory === "TYPE" ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                   <div style={{ fontSize: "11px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "1.5px", color: "var(--text-secondary)" }}>
                     Choose Measurement Type
@@ -787,6 +907,10 @@ function Dashboard() {
                   <div style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
                     Current selection: <span style={{ fontWeight: 700, color: "var(--text-primary)" }}>{draftType || "None"}</span>
                   </div>
+                </div>
+              ) : (
+                <div style={{ fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.5 }}>
+                  Loads every saved history entry for your account. Click Apply to fetch.
                 </div>
               )}
             </div>

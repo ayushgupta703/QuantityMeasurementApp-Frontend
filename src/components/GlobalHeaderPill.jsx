@@ -3,8 +3,8 @@ import ThemeToggle from "./ThemeToggle";
 
 export default function GlobalHeaderPill() {
   const location = useLocation();
-  // Only show on auth pages — dashboard has its own topbar
-  const isAuth = location.pathname === "/" || location.pathname === "/signup";
+  // Only show on auth pages — dashboard is "/" and has its own topbar
+  const isAuth = location.pathname === "/login" || location.pathname === "/signup";
   if (!isAuth) return null;
 
   return (
