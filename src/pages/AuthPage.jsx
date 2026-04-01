@@ -8,10 +8,10 @@ function AuthPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const showToast = useToast();
-  const [isLogin, setIsLogin] = useState(location.pathname === "/");
+  const [isLogin, setIsLogin] = useState(location.pathname === "/login");
   
   useEffect(() => {
-    setIsLogin(location.pathname === "/");
+    setIsLogin(location.pathname === "/login");
   }, [location.pathname]);
 
   const [form, setForm] = useState({ name: "", email: "", password: "" });
@@ -25,7 +25,7 @@ function AuthPage() {
     if (isLogin === loginMode) return;
     setIsLogin(loginMode);
     setForm({ name: "", email: "", password: "" });
-    navigate(loginMode ? "/" : "/signup", { replace: true });
+    navigate(loginMode ? "/login" : "/signup", { replace: true });
   };
 
   const handleSubmitLogin = async (e) => {
@@ -34,7 +34,7 @@ function AuthPage() {
       const res = await loginUser({ email: form.email, password: form.password });
       localStorage.setItem("token", res.token);
       showToast("Login successful! Welcome back.", "success");
-      navigate("/dashboard");
+      navigate("/");
     } catch (err) {
       showToast(err.message || "Login failed. Check your credentials.", "error");
     }
