@@ -10,7 +10,10 @@ import {
   compare,
   add,
   subtract,
-  divide
+  divide,
+  getHistoryByOperation,
+  getHistoryByType,
+  getOperationCount
 } from "../services/calculationService";
 
 // Define SVG components
@@ -74,6 +77,18 @@ function Dashboard() {
   const [selectedAction, setSelectedAction] = useState("CONVERSION");
   const [operation, setOperation] = useState("ADD");
 
+  // History state
+  const [history, setHistory] = useState([]);
+  const [selectedOperation, setSelectedOperation] = useState("");
+  const [selectedTypeFilter, setSelectedTypeFilter] = useState("");
+  const [operationCount, setOperationCount] = useState(0);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [activeFilterCategory, setActiveFilterCategory] = useState("OPERATION"); // OPERATION | TYPE
+  const [draftOperation, setDraftOperation] = useState("");
+  const [draftType, setDraftType] = useState("");
+
   const [value1, setValue1] = useState("");
   const [value2, setValue2] = useState("");
   const [unit1, setUnit1] = useState(unitOptions["LENGTH"][0]);
@@ -96,6 +111,133 @@ function Dashboard() {
       }
     }
   }, []);
+
+  const fetchHistoryByOperation = async (op) => {
+    try {
+      const data = await getHistoryByOperation(op);
+      setHistory(Array.isArray(data) ? data : (data?.history || data?.data || []));
+    } catch (err) {
+      showToast("Failed to fetch history: " + err.message, "error");
+      setHistory([]);
+    }
+  };
+
+  const fetchHistoryByType = async (type) => {
+    try {
+      const data = await getHistoryByType(type);
+      setHistory(Array.isArray(data) ? data : (data?.history || data?.data || []));
+    } catch (err) {
+      showToast("Failed to fetch history: " + err.message, "error");
+      setHistory([]);
+    }
+  };
+
+  const fetchOperationCount = async (op) => {
+    try {
+      const data = await getOperationCount(op);
+      const count =
+        typeof data === "number"
+          ? data
+          : (data?.count ?? data?.data ?? data?.value ?? 0);
+      setOperationCount(Number(count) || 0);
+    } catch (err) {
+      showToast("Failed to fetch operation count: " + err.message, "error");
+      setOperationCount(0);
+    }
+  };
+
+  // No history filter applied by default (fetch only after user applies)
+
+  // Close popup on ESC
+  useEffect(() => {
+    if (!isFilterOpen) return;
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") setIsFilterOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isFilterOpen]);
+
+  // Close history modal on ESC
+  useEffect(() => {
+    if (!isHistoryOpen) return;
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setIsFilterOpen(false);
+        setIsHistoryOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isHistoryOpen]);
+
+  // Close user menu on ESC / outside click
+  useEffect(() => {
+    if (!isUserMenuOpen) return;
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") setIsUserMenuOpen(false);
+    };
+    const onPointerDown = (e) => {
+      const menuEl = document.getElementById("user-menu");
+      const btnEl = document.getElementById("user-menu-btn");
+      if (!menuEl || !btnEl) return;
+      if (menuEl.contains(e.target) || btnEl.contains(e.target)) return;
+      setIsUserMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("pointerdown", onPointerDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("pointerdown", onPointerDown);
+    };
+  }, [isUserMenuOpen]);
+
+  const openHistory = () => {
+    setIsHistoryOpen(true);
+  };
+
+  const openFilter = () => {
+    setDraftOperation(selectedOperation);
+    setDraftType(selectedTypeFilter);
+    setIsFilterOpen(true);
+  };
+
+  const applyFilter = async () => {
+    setIsFilterOpen(false);
+
+    if (activeFilterCategory === "OPERATION") {
+      const op = (draftOperation || "").trim();
+      setSelectedOperation(op);
+      setSelectedTypeFilter(""); // show that we are filtering by operation now
+      if (!op) {
+        setHistory([]);
+        setOperationCount(0);
+        return;
+      }
+      await fetchHistoryByOperation(op);
+      await fetchOperationCount(op);
+      return;
+    }
+
+    const type = (draftType || "").trim();
+    setSelectedTypeFilter(type);
+    setSelectedOperation(""); // show that we are filtering by type now
+    setOperationCount(0);
+    if (!type) {
+      setHistory([]);
+      return;
+    }
+    await fetchHistoryByType(type);
+  };
+
+  const clearFilter = async () => {
+    setDraftOperation("");
+    setDraftType("");
+    setSelectedOperation("");
+    setSelectedTypeFilter("");
+    setOperationCount(0);
+    setHistory([]);
+  };
 
   useEffect(() => {
     const calculate = async () => {
@@ -194,8 +336,86 @@ function Dashboard() {
         <h2>Quantity Measurement</h2>
         <div className="topbar-actions">
           <ThemeToggle />
-          <div className="user-email">{userEmail}</div>
-          <button className="logout-btn" onClick={handleLogout}>Logout</button>
+          <button
+            className="logout-btn"
+            onClick={(e) => {
+              handleRipple(e);
+              openHistory();
+            }}
+          >
+            History
+          </button>
+
+          <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+            <button
+              id="user-menu-btn"
+              onClick={(e) => {
+                handleRipple(e);
+                setIsUserMenuOpen((v) => !v);
+              }}
+              style={{
+                height: "40px",
+                width: "40px",
+                borderRadius: "999px",
+                border: "1px solid rgba(255,255,255,0.14)",
+                background: "rgba(255,255,255,0.06)",
+                display: "grid",
+                placeItems: "center",
+                cursor: "pointer",
+                color: "var(--text-primary)"
+              }}
+              aria-haspopup="menu"
+              aria-expanded={isUserMenuOpen}
+              title={userEmail}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21a8 8 0 0 0-16 0" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            </button>
+
+            {isUserMenuOpen && (
+              <div
+                id="user-menu"
+                role="menu"
+                style={{
+                  position: "absolute",
+                  top: "46px",
+                  right: 0,
+                  width: "260px",
+                  borderRadius: "12px",
+                  background: "rgba(22,22,26,0.96)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  boxShadow: "0 16px 44px rgba(0,0,0,0.45)",
+                  padding: "10px",
+                  zIndex: 50
+                }}
+              >
+                <div style={{ padding: "8px 10px" }}>
+                  <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "1.5px", color: "var(--text-secondary)" }}>
+                    Signed in as
+                  </div>
+                  <div style={{ marginTop: "6px", fontSize: "13px", fontWeight: 800, wordBreak: "break-word" }}>
+                    {userEmail}
+                  </div>
+                </div>
+
+                <div style={{ height: "1px", background: "rgba(255,255,255,0.10)", margin: "8px 0" }} />
+
+                <button
+                  role="menuitem"
+                  className="logout-btn"
+                  onClick={() => {
+                    setIsUserMenuOpen(false);
+                    handleLogout();
+                  }}
+                  style={{ width: "100%" }}
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -341,6 +561,247 @@ function Dashboard() {
           </div>
         </div>
       </div>
+
+      {isHistoryOpen && (
+        <div
+          onClick={() => {
+            setIsFilterOpen(false);
+            setIsHistoryOpen(false);
+          }}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.55)",
+            backdropFilter: "blur(6px)",
+            zIndex: 9998,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "18px"
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "min(780px, 100%)",
+              maxHeight: "min(78vh, 720px)",
+              overflow: "auto",
+              borderRadius: "14px",
+              background: "rgba(22,22,26,0.92)",
+              border: "1px solid rgba(255,255,255,0.10)",
+              padding: "14px"
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px" }}>
+              <div>
+                <div style={{ fontSize: "14px", fontWeight: 800 }}>History</div>
+                <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "2px" }}>
+                  Operation: {selectedOperation || "None"} • Type: {selectedTypeFilter || "None"}
+                </div>
+                {!!selectedOperation && (
+                  <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "2px" }}>
+                    Total {selectedOperation} operations: <span style={{ color: "var(--text-primary)", fontWeight: 800 }}>{operationCount}</span>
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button
+                  className="logout-btn"
+                  onClick={() => openFilter()}
+                  style={{ height: "34px" }}
+                >
+                  Filter
+                </button>
+                <button
+                  className="logout-btn"
+                  onClick={() => {
+                    setIsFilterOpen(false);
+                    setIsHistoryOpen(false);
+                  }}
+                  style={{ height: "34px" }}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+
+            <div style={{ marginTop: "12px" }}>
+              {(!history || history.length === 0) ? (
+                <div style={{ color: "var(--text-secondary)", fontSize: "13px" }}>
+                  No history available
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {history.map((item, idx) => {
+                    const left = `${item.thisValue} ${item.thisUnit} ${item.operation} ${item.thatValue} ${item.thatUnit}`;
+                    const right = item.resultString || `${item.resultValue} ${item.resultUnit}`;
+                    return (
+                      <div
+                        key={item.id || `${item.operation}-${idx}`}
+                        style={{
+                          padding: "10px 12px",
+                          borderRadius: "10px",
+                          background: "rgba(255,255,255,0.04)",
+                          border: "1px solid rgba(255,255,255,0.08)"
+                        }}
+                      >
+                        <div style={{ fontSize: "13px", fontWeight: 600 }}>
+                          {left} = {right}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isFilterOpen && (
+        <div
+          onClick={() => setIsFilterOpen(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.55)",
+            backdropFilter: "blur(6px)",
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "18px"
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "min(520px, 100%)",
+              borderRadius: "14px",
+              background: "rgba(22,22,26,0.92)",
+              border: "1px solid rgba(255,255,255,0.10)",
+              padding: "14px"
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
+              <div>
+                <div style={{ fontSize: "14px", fontWeight: 700 }}>History Filters</div>
+                <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "2px" }}>
+                  Select a category, choose a filter, then apply.
+                </div>
+              </div>
+              <button className="logout-btn" onClick={() => setIsFilterOpen(false)} style={{ height: "34px" }}>
+                Close
+              </button>
+            </div>
+
+            <div style={{ display: "flex", gap: "10px", marginTop: "12px" }}>
+              <button
+                className={activeFilterCategory === "OPERATION" ? "active" : ""}
+                onClick={() => setActiveFilterCategory("OPERATION")}
+                style={{
+                  flex: 1,
+                  padding: "10px 12px",
+                  borderRadius: "10px",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  background: activeFilterCategory === "OPERATION" ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.04)",
+                  color: "var(--text-primary)",
+                  fontWeight: 700,
+                  cursor: "pointer"
+                }}
+              >
+                Operation
+              </button>
+              <button
+                className={activeFilterCategory === "TYPE" ? "active" : ""}
+                onClick={() => setActiveFilterCategory("TYPE")}
+                style={{
+                  flex: 1,
+                  padding: "10px 12px",
+                  borderRadius: "10px",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  background: activeFilterCategory === "TYPE" ? "rgba(255,255,255,0.10)" : "rgba(255,255,255,0.04)",
+                  color: "var(--text-primary)",
+                  fontWeight: 700,
+                  cursor: "pointer"
+                }}
+              >
+                Measurement Type
+              </button>
+            </div>
+
+            <div style={{ marginTop: "12px" }}>
+              {activeFilterCategory === "OPERATION" ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <div style={{ fontSize: "11px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "1.5px", color: "var(--text-secondary)" }}>
+                    Choose Operation
+                  </div>
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                    {["ADD", "SUBTRACT", "DIVIDE", "CONVERT"].map((op) => (
+                      <button
+                        key={op}
+                        onClick={() => setDraftOperation(op)}
+                        style={{
+                          padding: "10px 12px",
+                          borderRadius: "10px",
+                          border: "1px solid rgba(255,255,255,0.12)",
+                          background: draftOperation === op ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.04)",
+                          color: "var(--text-primary)",
+                          fontWeight: 700,
+                          cursor: "pointer"
+                        }}
+                      >
+                        {op}
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
+                    Current selection: <span style={{ fontWeight: 700, color: "var(--text-primary)" }}>{draftOperation || "None"}</span>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <div style={{ fontSize: "11px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "1.5px", color: "var(--text-secondary)" }}>
+                    Choose Measurement Type
+                  </div>
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                    {["LengthUnit", "WeightUnit", "VolumeUnit", "TemperatureUnit"].map((t) => (
+                      <button
+                        key={t}
+                        onClick={() => setDraftType(t)}
+                        style={{
+                          padding: "10px 12px",
+                          borderRadius: "10px",
+                          border: "1px solid rgba(255,255,255,0.12)",
+                          background: draftType === t ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.04)",
+                          color: "var(--text-primary)",
+                          fontWeight: 700,
+                          cursor: "pointer"
+                        }}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
+                    Current selection: <span style={{ fontWeight: 700, color: "var(--text-primary)" }}>{draftType || "None"}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "14px" }}>
+              <button className="logout-btn" onClick={clearFilter} style={{ height: "36px" }}>
+                Clear
+              </button>
+              <button className="logout-btn" onClick={applyFilter} style={{ height: "36px" }}>
+                Apply
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
