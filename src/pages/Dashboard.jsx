@@ -87,7 +87,8 @@ function Dashboard() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
-  const [activeFilterCategory, setActiveFilterCategory] = useState("OPERATION"); // OPERATION | TYPE
+  const [activeFilterCategory, setActiveFilterCategory] = useState("OPERATION"); // OPERATION | TYPE | ALL
+  const [historyFilterMode, setHistoryFilterMode] = useState("none"); // none | operation | type | all
   const [draftOperation, setDraftOperation] = useState("");
   const [draftType, setDraftType] = useState("");
 
