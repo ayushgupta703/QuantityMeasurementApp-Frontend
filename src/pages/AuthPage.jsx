@@ -58,7 +58,7 @@ function AuthPage() {
   const googleBtn = (
     <button
       className="google-btn"
-      onClick={() => window.location.href = "http://localhost:8081/oauth2/authorization/google"}
+      onClick={() => window.location.href = "http://localhost:8082/auth-service/oauth2/authorization/google"}
       type="button"
     >
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
