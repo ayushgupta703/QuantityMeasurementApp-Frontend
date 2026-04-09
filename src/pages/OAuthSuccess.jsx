@@ -13,11 +13,11 @@ function OAuthSuccess() {
       localStorage.setItem("token", token);
       localStorage.setItem("userEmail", email);
 
-      navigate("/");
+      navigate("/dashboard");
     } else {
-      navigate("/");
+      navigate("/login");
     }
-  }, []);
+  }, [params, navigate]);
 
   return <p>Logging you in...</p>;
 }
