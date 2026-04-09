@@ -1,6 +1,6 @@
 # ⚛️ Quantity Measurement Application — Frontend
 
-A modern React-based frontend application built using **Vite + React**, integrated with a secure Spring Boot backend to provide a complete **full-stack quantity measurement system**.
+A modern React-based frontend built using **Vite + React**, integrated with a **microservices-based Spring Boot backend** via an API Gateway to provide a complete full-stack quantity measurement system.
 
 ---
 
@@ -17,15 +17,16 @@ A modern React-based frontend application built using **Vite + React**, integrat
 
 ## 🔗 Backend Repository
 
-This frontend is fully integrated with a Spring Boot backend.
+This frontend is fully integrated with a **microservices-based Spring Boot backend**.
 
-👉 Please refer to the backend repository for:
-- API documentation
-- Database setup
-- Environment configuration
-- Authentication (JWT & OAuth2) setup
+👉 Backend includes:
 
-🔗 Backend Repository:  
+* Auth Service
+* Measurement Service
+* Eureka Server
+* API Gateway
+
+🔗 Backend Repository:
 https://github.com/ayushgupta703/QuantityMeasurementApp.git
 
 ---
@@ -33,187 +34,202 @@ https://github.com/ayushgupta703/QuantityMeasurementApp.git
 ## ⚡ Quickstart (TL;DR)
 
 1. **Clone the repo**
-   ```bash
-   git clone https://github.com/ayushgupta703/QuantityMeasurementApp-Frontend.git
-   cd QuantityMeasurementApp-Frontend
-   ```
+
+```bash
+git clone https://github.com/ayushgupta703/QuantityMeasurementApp-Frontend.git
+cd QuantityMeasurementApp-Frontend
+```
 
 2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+
+```bash
+npm install
+```
 
 3. **Start the app**
-   ```bash
-   npm run dev
-   ```
+
+```bash
+npm run dev
+```
 
 4. Open:
-   ```
-   http://localhost:5173
-   ```
 
-> ⚠️ Note: Make sure the backend server is running on `http://localhost:8081` before starting the frontend.
----
+```text
+http://localhost:5173
+```
 
-## 📖 Project Overview (UC19–UC20)
-
-This frontend was developed as an extension of the backend system, focusing on UI, UX, and API integration.
+> ⚠️ Ensure backend services are running and accessible via API Gateway (`http://localhost:8082`)
 
 ---
 
-### 🟢 UC19 — UI Development (HTML, CSS, JS)
-
-- Designed Login & Signup UI
-- Implemented dashboard UI
-- Used JSON Server for mock backend
-- Focused on UI/UX design and layout
+## 📖 Project Overview
 
 ---
 
-### 🔵 UC20 — React Integration & Backend Connectivity
+### 🟢 UC19 — UI Development
 
-- Migrated UI to React (Vite)
-- Connected frontend with Spring Boot backend
-- Implemented API-based architecture
-- Integrated authentication and protected routes
+* Designed Login & Signup UI
+* Built Dashboard UI
+* Focused on UX and responsiveness
+
+---
+
+### 🔵 UC20 — React Integration
+
+* Migrated UI to React (Vite)
+* Integrated with backend APIs
+* Implemented authentication & protected routes
+
+---
+
+### 🌐 UC21 — Microservices Integration
+
+Frontend was refactored to work with a **microservices backend via API Gateway**.
+
+---
+
+## 🌐 Application Flow
+
+```text
+User → React UI → API Gateway → Microservices → Response → UI
+```
 
 ---
 
 ## 🔐 Authentication Flow
 
 ### ✅ Local Authentication
-- Login using email & password
-- JWT token stored in localStorage
-- Token used in API calls
 
-### ✅ Google OAuth Login
-- Login/Signup using Google
-- Backend handles authentication
-- Redirects to frontend with JWT token
-- Token stored and user redirected to dashboard
+* Login using email/password
+* JWT token stored in localStorage
+* Token attached in API requests
 
 ---
 
-## 🔄 Application Flow
+### ✅ Google OAuth Login
 
-User → React UI → API Request → Spring Boot Backend → JWT Authentication → Response → UI
+* Initiated via API Gateway
+* Backend handles authentication
+* Redirects to frontend with JWT
+* Token stored and user redirected to dashboard
 
 ---
 
 ## 🖥️ Features
 
 ### 🔹 Authentication
-✔ Login with email/password  
-✔ Signup with validation  
-✔ Google OAuth login  
-✔ JWT-based authentication  
-✔ Protected routes  
+
+✔ Login with email/password
+✔ Signup with validation
+✔ Google OAuth login
+✔ JWT-based authentication
+✔ Protected routes
 
 ---
 
 ### 🔹 Dashboard Functionality
-✔ Unit Conversion (user-defined target unit)  
-✔ Comparison (Equal / Not Equal)  
-✔ Arithmetic Operations (Add, Subtract, Divide)  
-✔ Dynamic UI based on measurement type  
-✔ Real-time API integration  
+
+✔ Unit Conversion
+✔ Comparison (Equal / Not Equal)
+✔ Arithmetic Operations (Add, Subtract, Divide)
+✔ Dynamic UI based on measurement type
+✔ Real-time API integration
 
 ---
 
-### 🔹 Supported Measurement Types
+## 🔧 API Integration (via Gateway)
 
-| Category | Units |
-|----------|------|
-| Length | FEET, INCHES, YARDS, CENTIMETERS |
-| Weight | KILOGRAM, GRAM, POUND |
-| Volume | LITRE, MILLILITRE, GALLON |
-| Temperature | CELSIUS, FAHRENHEIT *(no arithmetic)* |
+All API calls are routed through:
 
----
-
-## ⚙️ Project Structure
-
+```text
+http://localhost:8082
 ```
-src/
- ├── pages/
- │    ├── Login.jsx
- │    ├── Signup.jsx
- │    ├── Dashboard.jsx
- │    ├── OAuthSuccess.jsx
- │
- ├── services/
- │    └── calculationService.js
- │
- ├── styles/
- │    ├── auth.css
- │    ├── dashboard.css
- │
- ├── App.jsx
- ├── main.jsx
-
- ```
 
 ---
 
-## 🔌 API Integration
+### 🔐 Auth APIs
 
-Frontend communicates with backend APIs:
+| Feature      | Endpoint                                    |
+| ------------ | ------------------------------------------- |
+| Login        | `/auth-service/auth/login`                  |
+| Register     | `/auth-service/auth/register`               |
+| Google OAuth | `/auth-service/oauth2/authorization/google` |
 
-| Feature | Endpoint |
-|--------|--------|
-| Login | `/auth/login` |
-| Register | `/auth/register` |
-| Convert | `/api/v1/quantities/convert` |
-| Compare | `/api/v1/quantities/compare` |
-| Add | `/api/v1/quantities/add` |
-| Subtract | `/api/v1/quantities/subtract` |
-| Divide | `/api/v1/quantities/divide` |
+---
+
+### ⚙️ Measurement APIs
+
+| Feature    | Endpoint                                             |
+| ---------- | ---------------------------------------------------- |
+| Operations | `/measurement-service/api/v1/quantities/operation/*` |
+| History    | `/measurement-service/api/v1/quantities/history`     |
 
 ---
 
 ## 🔑 Token Handling
 
-- JWT stored in:
-  ```js
-  localStorage.setItem("token", token);
-  ```
-- Sent in headers:
-  ```js
-  Authorization: Bearer <token>
-  ```
+```js
+localStorage.setItem("token", token);
+```
+
+Used in requests:
+
+```js
+Authorization: Bearer <token>
+```
+
+---
+
+## 📁 Project Structure
+
+```
+src/
+ ├── pages/
+ │    ├── AuthPage.jsx
+ │    ├── Dashboard.jsx
+ │    ├── OAuthSuccess.jsx
+ │
+ ├── services/
+ │    ├── api.js
+ │    ├── authService.js
+ │    ├── calculationService.js
+ │
+ ├── styles/
+ │
+ ├── App.jsx
+ ├── main.jsx
+```
 
 ---
 
 ## 🎨 UI Highlights
 
-- Clean and responsive layout
-- Dynamic unit selection
-- Conditional rendering for operations
-- Real-time result updates
-- Improved UX (Equal / Not Equal instead of boolean)
+* Clean and responsive UI
+* Dynamic unit selection
+* Conditional rendering
+* Real-time updates
+* Improved UX (Equal / Not Equal display)
 
 ---
 
 ## 🧠 Concepts Covered
 
-- React Hooks (useState, useEffect)
-- Component-based architecture
-- API integration using Fetch
-- State management
-- Conditional rendering
-- Authentication handling (JWT)
-- OAuth integration flow
-- Protected routes
+* React Hooks (useState, useEffect)
+* Component-based architecture
+* API integration via Gateway
+* JWT authentication handling
+* OAuth2 flow handling
+* Protected routes
+* Microservices communication via Gateway
 
 ---
 
 ## 🎯 One-Line Summary
 
-A dynamic React frontend integrated with a secure Spring Boot backend, supporting real-time unit conversion, arithmetic operations, and authentication using JWT and Google OAuth.
+A dynamic React frontend integrated with a microservices-based Spring Boot backend via an API Gateway, supporting real-time unit operations with secure authentication using JWT and Google OAuth.
 
 ---
 
 ## 👨‍💻 Author
 
-Ayush Gupta
+**Ayush Gupta**

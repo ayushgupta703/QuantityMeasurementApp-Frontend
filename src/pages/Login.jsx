@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import "../styles/auth.css";
 import { loginUser } from "../services/authService";
 import { useToast } from "../components/ToastManager";
+import { OAUTH_URL } from "../config/api";
 
 function Login() {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ function Login() {
     });
   };
 
-  // Handle login (same flow as UC19)
+  // Handle login
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -98,11 +99,10 @@ function Login() {
         {/* Divider */}
         <div className="divider">OR</div>
 
-        {/* Google Button (UI only for now) */}
         <button
           className="google-btn"
           onClick={() => {
-            window.location.href = "http://localhost:8082/auth-service/oauth2/authorization/google";
+            window.location.href = OAUTH_URL;
           }}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
