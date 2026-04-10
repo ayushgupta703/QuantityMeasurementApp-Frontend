@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import "../styles/auth.css";
 import { loginUser, registerUser } from "../services/authService";
 import { useToast } from "../components/ToastManager";
+import { OAUTH_URL } from "../config/api";
 
 function AuthPage() {
   const navigate = useNavigate();
@@ -58,7 +59,7 @@ function AuthPage() {
   const googleBtn = (
     <button
       className="google-btn"
-      onClick={() => window.location.href = "http://localhost:8082/auth-service/oauth2/authorization/google"}
+      onClick={() => window.location.href = OAUTH_URL}
       type="button"
     >
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
